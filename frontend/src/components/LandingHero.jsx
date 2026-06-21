@@ -15,16 +15,16 @@ export default function LandingHero({ onConnect, isConnecting }) {
         </div>
 
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ type: 'spring', stiffness: 85, damping: 20 }}
           className="relative z-10"
         >
           {/* Badge */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.2, type: 'spring', stiffness: 120, damping: 15 }}
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-500/10 border border-primary-500/20 mb-8"
           >
             <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
@@ -32,7 +32,7 @@ export default function LandingHero({ onConnect, isConnecting }) {
           </motion.div>
 
           {/* Title */}
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black mb-6 leading-tight">
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-sans font-black mb-6 leading-tight tracking-tight">
             <span className="text-white">Sewa Kost</span>
             <br />
             <span className="gradient-text">Terdesentralisasi</span>
@@ -48,24 +48,50 @@ export default function LandingHero({ onConnect, isConnecting }) {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.3 }}
             className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-12"
           >
             {[
-              { icon: '⛓️', title: 'Smart Contract', desc: 'Pembayaran transparan & otomatis' },
-              { icon: '🔐', title: 'IoT Auto-Lock', desc: 'Kunci pintu berbasis status sewa' },
-              { icon: '⚡', title: 'Real-Time', desc: 'Sinkronisasi < 5 detik' },
+              { 
+                icon: (
+                  <svg className="w-8 h-8 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  </svg>
+                ),
+                title: 'Smart Contract', 
+                desc: 'Pembayaran transparan & otomatis' 
+              },
+              { 
+                icon: (
+                  <svg className="w-8 h-8 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                ),
+                title: 'IoT Auto-Lock', 
+                desc: 'Kunci pintu berbasis status sewa' 
+              },
+              { 
+                icon: (
+                  <svg className="w-8 h-8 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                ),
+                title: 'Real-Time', 
+                desc: 'Sinkronisasi < 5 detik' 
+              },
             ].map((feat, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 + i * 0.1 }}
-                className="glass-card p-5 text-left"
+                transition={{ delay: 0.4 + i * 0.08, type: 'spring', stiffness: 120, damping: 15 }}
+                whileHover={{ y: -6, scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="glass-card p-5 text-left flex flex-col gap-3 cursor-pointer hover:border-primary-500/50 hover:shadow-lg transition-all duration-300"
               >
-                <span className="text-2xl">{feat.icon}</span>
-                <h3 className="text-sm font-semibold text-white mt-2">{feat.title}</h3>
-                <p className="text-xs text-surface-400 mt-1">{feat.desc}</p>
+                <div>{feat.icon}</div>
+                <h3 className="text-sm font-semibold text-white">{feat.title}</h3>
+                <p className="text-xs text-surface-400">{feat.desc}</p>
               </motion.div>
             ))}
           </motion.div>

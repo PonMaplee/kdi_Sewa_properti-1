@@ -29,8 +29,22 @@ export default function CountdownTimer({ endTimestamp, isActive }) {
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-surface-300 uppercase tracking-wider">
-          {expired ? '⏰ Sewa Berakhir' : '⏱️ Sisa Waktu Sewa'}
+        <h3 className="text-sm font-semibold text-surface-300 uppercase tracking-wider flex items-center gap-2">
+          {expired ? (
+            <>
+              <svg className="w-4 h-4 text-red-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Sewa Berakhir
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4 text-primary-400 animate-spin" style={{ animationDuration: '6s' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Sisa Waktu Sewa
+            </>
+          )}
         </h3>
         <div className={expired ? 'door-locked' : isActive ? 'door-unlocked' : 'door-locked'} />
       </div>
@@ -71,9 +85,12 @@ export default function CountdownTimer({ endTimestamp, isActive }) {
       )}
 
       {expired && (
-        <div className="mt-4 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20">
-          <p className="text-xs text-red-400 text-center font-medium">
-            ⚠️ Masa sewa telah habis. Akses pintu dikunci otomatis.
+        <div className="mt-4 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center gap-2">
+          <svg className="w-5 h-5 text-red-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <p className="text-xs text-red-400 font-medium">
+            Masa sewa telah habis. Akses pintu dikunci otomatis.
           </p>
         </div>
       )}
