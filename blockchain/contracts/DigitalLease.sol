@@ -215,28 +215,32 @@ contract DigitalLease {
     /**
      * @dev Membayar sewa. Jika telat, wajib bayar sewa + denda.
      */
-    function payRent() external payable onlyRegistered {
+    function payRent(uint256 _days) external payable onlyRegistered {
+        require(_days > 0, "Durasi sewa minimal 1 hari");
         Tenant storage tenant = tenants[msg.sender];
         
-        uint256 requiredAmount = rentAmount;
+        uint256 requiredRent = (rentAmount * _days) / (leaseDuration / 1 days);
+        uint256 requiredAmount = requiredRent;
         uint256 penalty = 0;
 
         // Cek apakah ada keterlambatan & denda
         if (tenant.leaseEnd > 0 && block.timestamp > tenant.leaseEnd + gracePeriod) {
-            penalty = (rentAmount * penaltyRate) / 100;
-            requiredAmount = rentAmount + penalty;
+            penalty = (requiredRent * penaltyRate) / 100;
+            requiredAmount = requiredRent + penalty;
         }
 
         require(msg.value >= requiredAmount, "Jumlah pembayaran kurang");
 
+        uint256 addedDuration = _days * 1 days;
+
         // Update status sewa
         if (tenant.leaseEnd > 0 && block.timestamp <= tenant.leaseEnd) {
             // Perpanjangan sebelum jatuh tempo
-            tenant.leaseEnd += leaseDuration;
+            tenant.leaseEnd += addedDuration;
         } else {
             // Sewa baru atau setelah jatuh tempo
             tenant.leaseStart = block.timestamp;
-            tenant.leaseEnd = block.timestamp + leaseDuration;
+            tenant.leaseEnd = block.timestamp + addedDuration;
         }
 
         tenant.isActive = true;
@@ -299,10 +303,12 @@ contract DigitalLease {
      * @dev Mendapatkan jumlah denda saat ini untuk penyewa
      * @param _tenant Alamat wallet penyewa
      */
-    function getCurrentPenalty(address _tenant) external view returns (uint256) {
+    function getCurrentPenalty(address _tenant, uint256 _days) external view returns (uint256) {
+        if (_days == 0) return 0;
         Tenant memory tenant = tenants[_tenant];
         if (tenant.leaseEnd > 0 && block.timestamp > tenant.leaseEnd + gracePeriod) {
-            return (rentAmount * penaltyRate) / 100;
+            uint256 requiredRent = (rentAmount * _days) / (leaseDuration / 1 days);
+            return (requiredRent * penaltyRate) / 100;
         }
         return 0;
     }

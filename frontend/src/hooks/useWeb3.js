@@ -108,8 +108,8 @@ export function useWeb3() {
         totalPenalties: details[7],
       });
 
-      // Ambil denda saat ini
-      const penalty = await contract.getCurrentPenalty(addr);
+      // Ambil denda saat ini (estimasi 30 hari)
+      const penalty = await contract.getCurrentPenalty(addr, 30);
       setCurrentPenalty(penalty);
     } catch (err) {
       console.error('Gagal membaca status sewa:', err);
@@ -182,7 +182,7 @@ export function useWeb3() {
   }, [provider]);
 
   // ============ 5. Transaksi Pembayaran (Write) ============
-  const payRent = useCallback(async (amountInEth = null) => {
+  const payRent = useCallback(async (days = 30, amountInEth = null) => {
     if (!signer) {
       setError('Wallet belum terhubung');
       throw new Error('Wallet belum terhubung');
@@ -194,19 +194,20 @@ export function useWeb3() {
     try {
       const contract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
       
-      // Gunakan jumlah yang diberikan atau jumlah sewa default + denda
+      // Gunakan jumlah yang diberikan atau jumlah sewa dihitung berdasarkan hari
       let value;
       if (amountInEth) {
         value = parseEther(amountInEth.toString());
       } else {
-        // Hitung total: sewa + denda (jika ada)
         const rentAmt = await contract.rentAmount();
-        const penalty = await contract.getCurrentPenalty(account);
-        value = rentAmt + penalty;
+        const leaseDuration = await contract.leaseDuration();
+        const requiredRent = (rentAmt * BigInt(days)) / (leaseDuration / 86400n);
+        const penalty = await contract.getCurrentPenalty(account, days);
+        value = requiredRent + penalty;
       }
 
       // Kirim transaksi
-      const tx = await contract.payRent({ value });
+      const tx = await contract.payRent(days, { value });
       console.log('Menunggu konfirmasi block...', tx.hash);
 
       // Tunggu konfirmasi

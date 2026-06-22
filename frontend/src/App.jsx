@@ -35,9 +35,9 @@ export default function App() {
   // Auto-set view based on role
   const effectiveView = web3.isAdmin && currentView === 'dashboard' ? 'dashboard' : 'tenant';
 
-  const handlePayRent = async () => {
+  const handlePayRent = async (days) => {
     try {
-      await web3.payRent();
+      await web3.payRent(days);
       toast.success('🎉 Pembayaran berhasil! Pintu akan segera terbuka.', { duration: 5000, style: { background: '#1e293b', color: '#fff', border: '1px solid rgba(16,185,129,0.3)' } });
     } catch (err) {
       toast.error(err.reason || err.message || 'Transaksi gagal', { style: { background: '#1e293b', color: '#fff', border: '1px solid rgba(239,68,68,0.3)' } });

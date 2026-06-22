@@ -21,6 +21,7 @@ export default function TenantPortal({
   dataLoaded,
 }) {
   const [showPayModal, setShowPayModal] = useState(false);
+  const [rentalDays, setRentalDays] = useState(30);
   const isRegistered = tenantDetails?.isRegistered || false;
   const isActive = leaseStatus?.isActive || false;
   const endTime = leaseStatus?.endTime || 0n;
@@ -30,15 +31,18 @@ export default function TenantPortal({
   const totalPaidEth = tenantDetails?.totalPaid ? formatEther(tenantDetails.totalPaid) : '0';
   const totalPenaltiesEth = tenantDetails?.totalPenalties ? formatEther(tenantDetails.totalPenalties) : '0';
 
+  const leaseDurationDays = contractInfo?.leaseDuration ? Number(contractInfo.leaseDuration) / 86400 : 30;
+  const rentPerDay = contractInfo?.rentAmount ? Number(formatEther(contractInfo.rentAmount)) / leaseDurationDays : 0;
+  
+  const dynamicRentEth = rentPerDay * rentalDays;
+  const penaltyRate = contractInfo?.penaltyRate ? Number(contractInfo.penaltyRate) : 0;
   const hasPenalty = currentPenalty > 0n;
-  const totalDue = contractInfo?.rentAmount 
-    ? contractInfo.rentAmount + (currentPenalty || 0n) 
-    : 0n;
-  const totalDueEth = totalDue ? formatEther(totalDue) : '0';
+  const dynamicPenaltyEth = hasPenalty ? (dynamicRentEth * penaltyRate) / 100 : 0;
+  const totalDueEth = dynamicRentEth + dynamicPenaltyEth;
 
   const handlePay = async () => {
     try {
-      await onPayRent();
+      await onPayRent(rentalDays);
       setShowPayModal(false);
     } catch (err) {
       // Error handled by parent
@@ -130,9 +134,9 @@ export default function TenantPortal({
       {/* Stats Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="stat-card">
-          <span className="stat-label">Biaya Sewa</span>
+          <span className="stat-label">Biaya Sewa / {leaseDurationDays} Hari</span>
           <span className="stat-value text-primary-400">{parseFloat(rentAmountEth).toFixed(4)}</span>
-          <span className="text-xs text-surface-500">ETH / bulan</span>
+          <span className="text-xs text-surface-500">ETH</span>
         </div>
         <div className="stat-card">
           <span className="stat-label">Total Dibayar</span>
@@ -145,9 +149,9 @@ export default function TenantPortal({
           <span className="text-xs text-surface-500">ETH</span>
         </div>
         <div className="stat-card">
-          <span className="stat-label">Denda Saat Ini</span>
+          <span className="stat-label">Denda ({rentalDays} Hari)</span>
           <span className={`stat-value ${hasPenalty ? 'text-red-400' : 'text-accent-400'}`}>
-            {hasPenalty ? parseFloat(penaltyEth).toFixed(4) : '0'}
+            {hasPenalty ? parseFloat(dynamicPenaltyEth).toFixed(4) : '0'}
           </span>
           <span className="text-xs text-surface-500">{hasPenalty ? 'ETH (harus dibayar)' : 'Tidak ada denda'}</span>
         </div>
@@ -170,8 +174,19 @@ export default function TenantPortal({
         
         <div className="space-y-3 mb-6">
           <div className="flex justify-between items-center py-2 border-b border-surface-800">
-            <span className="text-surface-400 text-sm">Sewa Bulanan</span>
-            <span className="font-mono font-semibold text-white">{parseFloat(rentAmountEth).toFixed(4)} ETH</span>
+            <span className="text-surface-400 text-sm">Durasi Sewa (Hari)</span>
+            <input 
+              type="number" 
+              min="1" 
+              max="365" 
+              value={rentalDays} 
+              onChange={(e) => setRentalDays(Math.max(1, parseInt(e.target.value) || 1))}
+              className="w-24 px-3 py-1 bg-surface-900 border border-surface-700 rounded-lg text-white text-right outline-none focus:border-primary-500"
+            />
+          </div>
+          <div className="flex justify-between items-center py-2 border-b border-surface-800">
+            <span className="text-surface-400 text-sm">Biaya Sewa</span>
+            <span className="font-mono font-semibold text-white">{parseFloat(dynamicRentEth).toFixed(4)} ETH</span>
           </div>
           {hasPenalty && (
             <div className="flex justify-between items-center py-2 border-b border-surface-800">
@@ -181,7 +196,7 @@ export default function TenantPortal({
                 </svg>
                 Denda Keterlambatan ({contractInfo?.penaltyRate?.toString() || '10'}%)
               </span>
-              <span className="font-mono font-semibold text-red-400">+{parseFloat(penaltyEth).toFixed(4)} ETH</span>
+              <span className="font-mono font-semibold text-red-400">+{parseFloat(dynamicPenaltyEth).toFixed(4)} ETH</span>
             </div>
           )}
           <div className="flex justify-between items-center py-3 bg-surface-800/30 rounded-xl px-4 -mx-1">
@@ -245,7 +260,7 @@ export default function TenantPortal({
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
               </svg>
-              {hasPenalty ? `Bayar Sewa + Denda (${parseFloat(totalDueEth).toFixed(4)} ETH)` : `Bayar Sewa (${parseFloat(rentAmountEth).toFixed(4)} ETH)`}
+              {hasPenalty ? `Bayar Sewa + Denda (${parseFloat(totalDueEth).toFixed(4)} ETH)` : `Bayar Sewa (${parseFloat(dynamicRentEth).toFixed(4)} ETH)`}
             </>
           )}
         </button>
