@@ -6,7 +6,7 @@ import { formatAddress, formatDate } from '../utils/helpers';
 import CustomModal from './CustomModal';
 
 export default function LandlordDashboard({
-  account, contractInfo, tenantList, isLoading, txPending,
+  account, contractInfo, tenantList, adminList = [], isLoading, txPending,
   onRegisterTenant, onRemoveTenant, onOverrideDoor, onWithdrawFunds, onSetAdmin, error,
 }) {
   const [showForm, setShowForm] = useState(false);
@@ -245,7 +245,7 @@ export default function LandlordDashboard({
           </div>
         ) : (
           <div className="divide-y divide-surface-800">
-            {tenantList.map((tenant, i) => (
+            {[...tenantList].sort((a, b) => Number(a.roomNumber) - Number(b.roomNumber)).map((tenant, i) => (
               <div key={tenant.address} className="p-4 sm:p-6 hover:bg-surface-800/10 transition-colors">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
@@ -311,6 +311,33 @@ export default function LandlordDashboard({
           <div><span className="text-xs text-surface-500 uppercase tracking-wider">Masa Tenggang</span><p className="font-semibold text-white mt-1">{contractInfo?.gracePeriod ? `${Number(contractInfo.gracePeriod) / 3600} jam` : '-'}</p></div>
         </div>
       </motion.div>
+
+      <motion.div variants={item} className="glass-card p-6">
+        <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <svg className="w-5 h-5 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          Daftar Admin
+        </h3>
+        <div className="flex flex-col gap-2">
+          {adminList && adminList.length > 0 ? (
+            adminList.map((adminAddr, i) => (
+              <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-surface-800/50 border border-surface-700/30">
+                <div className="w-8 h-8 rounded-full bg-primary-500/20 text-primary-400 flex items-center justify-center font-bold">
+                  {i + 1}
+                </div>
+                <p className="font-mono text-sm text-surface-300">{adminAddr}</p>
+                {adminAddr.toLowerCase() === account.toLowerCase() && (
+                  <span className="badge-active text-[10px] ml-2">Anda</span>
+                )}
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-surface-400">Belum ada data admin</p>
+          )}
+        </div>
+      </motion.div>
+
       <CustomModal
         isOpen={modal.isOpen}
         type={modal.type}

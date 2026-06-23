@@ -33,6 +33,7 @@ export function useWeb3() {
   });
   const [currentPenalty, setCurrentPenalty] = useState(0n);
   const [tenantList, setTenantList] = useState([]);
+  const [adminList, setAdminList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [txPending, setTxPending] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
@@ -178,6 +179,30 @@ export function useWeb3() {
       console.error('Gagal membaca daftar penyewa:', err);
     } finally {
       setIsLoading(false);
+    }
+  }, [provider]);
+
+  // ============ 4b. Ambil Daftar Admin ============
+  const fetchAdminList = useCallback(async () => {
+    if (!provider) return;
+
+    try {
+      const contract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+      
+      const filter = contract.filters.AdminStatusUpdated();
+      const events = await contract.queryFilter(filter, 0, 'latest');
+      
+      const adminMap = {};
+      events.forEach(event => {
+        const account = event.args[0];
+        const status = event.args[1];
+        adminMap[account] = status;
+      });
+      
+      const activeAdmins = Object.keys(adminMap).filter(addr => adminMap[addr] === true);
+      setAdminList(activeAdmins);
+    } catch (err) {
+      console.error('Gagal mengambil list admin:', err);
     }
   }, [provider]);
 
@@ -333,6 +358,9 @@ export function useWeb3() {
       const contract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
       const tx = await contract.setAdmin(adminAddress, status);
       await tx.wait();
+      if (isAdmin) {
+        await fetchAdminList();
+      }
       return tx;
     } catch (err) {
       setError(err.reason || err.message);
@@ -448,9 +476,10 @@ export function useWeb3() {
       fetchContractInfo();
       if (isAdmin) {
         fetchTenantList();
+        fetchAdminList();
       }
     }
-  }, [provider, account, isOwner, isAdmin, fetchLeaseStatus, fetchContractInfo, fetchTenantList]);
+  }, [provider, account, isOwner, isAdmin, fetchLeaseStatus, fetchContractInfo, fetchTenantList, fetchAdminList]);
 
   // ============ 13. Disconnect Wallet ============
   const disconnectWallet = useCallback(() => {
@@ -486,6 +515,7 @@ export function useWeb3() {
     contractInfo,
     currentPenalty,
     tenantList,
+    adminList,
 
     // Actions
     connectWallet,
@@ -499,6 +529,7 @@ export function useWeb3() {
     fetchLeaseStatus,
     fetchContractInfo,
     fetchTenantList,
+    fetchAdminList,
     setError,
   };
 }

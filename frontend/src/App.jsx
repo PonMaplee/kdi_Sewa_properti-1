@@ -111,6 +111,7 @@ export default function App() {
           account={web3.account}
           contractInfo={web3.contractInfo}
           tenantList={web3.tenantList}
+          adminList={web3.adminList}
           isLoading={web3.isLoading}
           txPending={web3.txPending}
           onRegisterTenant={handleRegister}
