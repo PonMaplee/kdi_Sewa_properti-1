@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatEther } from 'ethers';
-import { toast } from 'react-hot-toast';
 import { formatAddress, formatDate } from '../utils/helpers';
 import CustomModal from './CustomModal';
 
@@ -83,17 +82,8 @@ export default function LandlordDashboard({
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    
-    const roomToBook = parseInt(newTenant.roomNumber);
-    const isRoomTaken = tenantList.some(tenant => Number(tenant.roomNumber) === roomToBook);
-    
-    if (isRoomTaken) {
-      toast.error('Kamar yang Anda pesan sudah dipesan!', { style: { background: '#1e293b', color: '#fff', border: '1px solid rgba(239,68,68,0.3)' } });
-      return;
-    }
-
     try {
-      await onRegisterTenant(newTenant.address, newTenant.name, roomToBook, Number(newTenant.initialDays) || 0);
+      await onRegisterTenant(newTenant.address, newTenant.name, parseInt(newTenant.roomNumber), Number(newTenant.initialDays) || 0);
       setNewTenant({ address: '', name: '', roomNumber: '', initialDays: 0 });
       setShowForm(false);
     } catch (err) {}
